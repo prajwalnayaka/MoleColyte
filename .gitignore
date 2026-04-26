@@ -186,3 +186,5 @@ QM9_dataset.zip
 rando/
 QM9_dataset/
 *.pt
+read_3D_tox21.py
+read_QM9.py
