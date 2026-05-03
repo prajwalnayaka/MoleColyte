@@ -188,3 +188,7 @@ QM9_dataset/
 *.pt
 read_3D_tox21.py
 read_QM9.py
+!molecolyte_qm9_pretrained_best.pt
+!molecolyte_qm9_pretrained_bigger_best.pt
+!molecolyte_tox21_random_spilt_finetuned_best.pt
+!molecolyte_tox21_random_spilt_finetuned_bigger_best.pt

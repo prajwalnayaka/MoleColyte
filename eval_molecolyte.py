@@ -12,7 +12,7 @@ def evaluate():
     model = MoleColyteModel(in_node_features=8, out_features=12).to(device)
 
     model.load_state_dict(
-        torch.load(r"Trained_Models/molecolyte_tox21_random_spilt_finetuned_bigger_best.pt", weights_only=True))
+        torch.load(r"Trained_Models/molecolyte_tox21_random_spilt_finetuned_best.pt", weights_only=True))
     model.eval()
 
     all_preds = []
