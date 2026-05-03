@@ -5,32 +5,28 @@ import torch.optim as optim
 from torch_geometric.nn import GINEConv, global_mean_pool
 
 from Utils import BondEmbedding
-from Utils import train_loader # UNCOMMENT THE CORRESPONDING DATASET IN /Utils/data_loader.py
+from Utils import qm9_train_loader # UNCOMMENT THE CORRESPONDING DATASET IN /Utils/data_loader.py
 
 
 # ==========================================
 # 1. THE MAIN MODEL ARCHITECTURE (MoleColyte)
 # ==========================================
 class MoleColyteModel(nn.Module):
-    def __init__(self, in_node_features=8, emb_dim=128, hidden_dim=128, dropout_rate=0.3):
+    def __init__(self, in_node_features=8, emb_dim=128, hidden_dim=64):
         super().__init__()
 
         self.bond_emb = BondEmbedding(emb_dim)
-        self.dropout = nn.Dropout(dropout_rate)
 
         self.mlp1 = nn.Sequential(nn.Linear(in_node_features, hidden_dim), nn.ReLU(), nn.Linear(hidden_dim, hidden_dim))
         self.mlp2 = nn.Sequential(nn.Linear(hidden_dim, hidden_dim), nn.ReLU(), nn.Linear(hidden_dim, hidden_dim))
-        self.mlp3 = nn.Sequential(nn.Linear(hidden_dim, hidden_dim), nn.ReLU(), nn.Linear(hidden_dim, hidden_dim))
 
         self.conv1 = GINEConv(self.mlp1, edge_dim=emb_dim + 1)
         self.conv2 = GINEConv(self.mlp2, edge_dim=emb_dim + 1)
-        self.conv3 = GINEConv(self.mlp3, edge_dim=emb_dim + 1)
 
         self.prediction_head = nn.Sequential(
-            nn.Linear(hidden_dim, hidden_dim // 2),
+            nn.Linear(hidden_dim, 32),
             nn.ReLU(),
-            nn.Dropout(dropout_rate),
-            nn.Linear(hidden_dim // 2, 1) # One target output which is internal energy, requires a lot of physics understanding to calculate so best we pre-train our model for this
+            nn.Linear(32, 1) # One target output which is internal energy, requires a lot of physics understanding to calculate so best we pre-train our model for this
         )
 
     def forward(self, x, pos, edge_index, edge_attr, batch):
@@ -44,15 +40,9 @@ class MoleColyteModel(nn.Module):
         # Pass 1
         x = self.conv1(x, edge_index, edge_attr=physics_edges)
         x = torch.relu(x)
-        x = self.dropout(x)
 
         # Pass 2
         x = self.conv2(x, edge_index, edge_attr=physics_edges)
-        x = torch.relu(x)
-        x = self.dropout(x)
-
-        # Pass 3
-        x = self.conv3(x, edge_index, edge_attr=physics_edges)
 
         mol_features = global_mean_pool(x, batch)
         return self.prediction_head(mol_features)
@@ -78,10 +68,9 @@ def train():
         total_loss = 0
         print("Starting Epoch", epoch + 1)
 
-        for step, batch in enumerate(train_loader):
+        for step, batch in enumerate(qm9_train_loader):
             batch = batch.to(device)
             optimizer.zero_grad()
-
 
             predictions = model(batch.x.to(torch.float), batch.pos, batch.edge_index, batch.edge_attr, batch.batch)
 
@@ -95,12 +84,13 @@ def train():
             if step % 500 == 0:
                 print(f"\t Epoch {epoch + 1}/{EPOCHS} | Batch {step} | Loss: {loss.item():.4f}")
 
-        avg_loss = total_loss / len(train_loader)
+        avg_loss = total_loss / len(qm9_train_loader)
         print(f"==> Epoch {epoch + 1} complete | Average Loss: {avg_loss:.4f}")
 
         if avg_loss < best_loss:
             best_loss = avg_loss
-            torch.save(model.state_dict(), r"../Trained Models/molecolyte_qm9_pretrained_bigger_best.pt")
+            # Reverted the save name back to the standard 64-dim version
+            torch.save(model.state_dict(), r"../Trained_Models/molecolyte_qm9_pretrained_best.pt")
             print(f"🏆 New best model saved! (Lowest Loss: {best_loss:.4f})\n")
         else:
             print(f"Model did not improve. Best loss remains: {best_loss:.4f}\n")

@@ -3,32 +3,28 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch_geometric.nn import GINEConv, global_mean_pool
-from Utils import train_loader, val_loader # UNCOMMENT THE CORRESPONDING DATASET IN /Utils/data_loader.py
+from Utils import tox21_train_loader, tox21_val_loader # UNCOMMENT THE CORRESPONDING DATASET IN /Utils/data_loader.py
 from Utils import BondEmbedding
 
 
 # ==========================================
-# 1. THE MAIN MODEL ARCHITECTURE
+# 1. THE MAIN MODEL ARCHITECTURE (Reverted Baseline)
 # ==========================================
 class MoleColyteModel(nn.Module):
-    def __init__(self, in_node_features=8, emb_dim=128, hidden_dim=128, out_features=1, dropout_rate=0.3):
+    def __init__(self, in_node_features=8, emb_dim=128, hidden_dim=64, out_features=1):
         super().__init__()
         self.bond_emb = BondEmbedding(emb_dim)
-        self.dropout = nn.Dropout(dropout_rate)
 
         self.mlp1 = nn.Sequential(nn.Linear(in_node_features, hidden_dim), nn.ReLU(), nn.Linear(hidden_dim, hidden_dim))
         self.mlp2 = nn.Sequential(nn.Linear(hidden_dim, hidden_dim), nn.ReLU(), nn.Linear(hidden_dim, hidden_dim))
-        self.mlp3 = nn.Sequential(nn.Linear(hidden_dim, hidden_dim), nn.ReLU(), nn.Linear(hidden_dim, hidden_dim))
 
         self.conv1 = GINEConv(self.mlp1, edge_dim=emb_dim + 1)
         self.conv2 = GINEConv(self.mlp2, edge_dim=emb_dim + 1)
-        self.conv3 = GINEConv(self.mlp3, edge_dim=emb_dim + 1)
 
         self.prediction_head = nn.Sequential(
-            nn.Linear(hidden_dim, hidden_dim // 2),
+            nn.Linear(hidden_dim, 32),
             nn.ReLU(),
-            nn.Dropout(dropout_rate),
-            nn.Linear(hidden_dim // 2, out_features)
+            nn.Linear(32, out_features)
         )
 
     def forward(self, x, pos, edge_index, edge_attr, batch):
@@ -40,15 +36,9 @@ class MoleColyteModel(nn.Module):
         # Pass 1
         x = self.conv1(x, edge_index, edge_attr=physics_edges)
         x = torch.relu(x)
-        x = self.dropout(x)  # Randomly turns off neurons so they don't overfit
 
         # Pass 2
         x = self.conv2(x, edge_index, edge_attr=physics_edges)
-        x = torch.relu(x)
-        x = self.dropout(x)
-
-        # Pass 3
-        x = self.conv3(x, edge_index, edge_attr=physics_edges)
 
         mol_features = global_mean_pool(x, batch)
         return self.prediction_head(mol_features)
@@ -85,10 +75,10 @@ def train():
     print(f"Kiln: {device}")
 
     # Import the model as it is
-    model = MoleColyteModel(out_features=1) # It's already 1 by default but set here explicitly for clarity
+    model = MoleColyteModel(out_features=1)
 
-    # Loading pre-trained physics weights from training on QM9
-    model.load_state_dict(torch.load(r"../Trained Models/molecolyte_qm9_pretrained_bigger_best.pt"))
+    # Loading pre-trained physics weights from training on QM9 (Standard baseline)
+    model.load_state_dict(torch.load(r"../Trained_Models/molecolyte_qm9_pretrained_best.pt"))
 
     # Modifying the model's prediction head according to the target features of Tox21
     model.prediction_head = nn.Sequential(
@@ -98,9 +88,10 @@ def train():
     )
     model = model.to(device)
 
+    # Note: Using lr=0.001 since the 64-dim architecture without dropout handles it well
     optimizer = optim.Adam(model.parameters(), lr=0.001)
 
-    dynamic_penalty = calculate_dynamic_weights(train_loader).to(device)
+    dynamic_penalty = calculate_dynamic_weights(tox21_train_loader).to(device)
     criterion = nn.BCEWithLogitsLoss(pos_weight=dynamic_penalty, reduction='none')
 
     EPOCHS = 20
@@ -112,17 +103,16 @@ def train():
         total_train_loss = 0
         print("Starting Epoch", epoch + 1)
 
-        for step, batch in enumerate(train_loader):
+        for step, batch in enumerate(tox21_train_loader):
             batch = batch.to(device)
             optimizer.zero_grad()
 
             predictions = model(batch.x.to(torch.float), batch.pos, batch.edge_index, batch.edge_attr, batch.batch)
             target_flags = batch.y.to(torch.float)
 
-            # Tox21 targets contain NaNs (missing data). This mask ignores them so math doesn't crash.
             is_valid = target_flags == target_flags
 
-            raw_loss = criterion(predictions, target_flags)  # 1. Calculate the 2D grid of errors
+            raw_loss = criterion(predictions, target_flags)
             loss = raw_loss[is_valid].mean()
 
             loss.backward()
@@ -133,7 +123,7 @@ def train():
             if step % 500 == 0:
                 print(f"\t Epoch {epoch + 1}/{EPOCHS} | Batch {step} | Loss: {loss.item():.4f}")
 
-        avg_train_loss = total_train_loss / len(train_loader)
+        avg_train_loss = total_train_loss / len(tox21_train_loader)
         print(f"==> Epoch {epoch + 1} Train Complete | Average BCE Loss: {avg_train_loss:.4f}")
 
         # ------------------------------------------
@@ -143,7 +133,7 @@ def train():
         total_val_loss = 0
 
         with torch.no_grad():
-            for batch in val_loader:
+            for batch in tox21_val_loader:
                 batch = batch.to(device)
 
                 predictions = model(batch.x.to(torch.float), batch.pos, batch.edge_index, batch.edge_attr, batch.batch)
@@ -156,7 +146,7 @@ def train():
 
                 total_val_loss += loss.item()
 
-        avg_val_loss = total_val_loss / len(val_loader)
+        avg_val_loss = total_val_loss / len(tox21_val_loader)
         print(f"\tValidation Phase | Avg Val Loss: {avg_val_loss:.4f}")
 
         # ------------------------------------------
@@ -164,7 +154,8 @@ def train():
         # ------------------------------------------
         if avg_val_loss < best_loss:
             best_loss = avg_val_loss
-            torch.save(model.state_dict(), r"../Trained Models/molecolyte_tox21_random_spilt_finetuned_bigger_best.pt")
+            # Restored standard path naming
+            torch.save(model.state_dict(), r"../Trained_Models/molecolyte_tox21_random_split_finetuned_best.pt")
             print(f"🏆 New best Tox21 model saved! (Lowest Val Loss: {best_loss:.4f})\n")
         else:
             print(f"Model did not improve. Best Val loss remains: {best_loss:.4f}\n")
