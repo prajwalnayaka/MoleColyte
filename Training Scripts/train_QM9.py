@@ -4,8 +4,8 @@ import torch.nn as nn
 import torch.optim as optim
 from torch_geometric.nn import GINEConv, global_mean_pool
 
-from layer_embedding import BondEmbedding
-from data_loader import train_loader
+from Utils import BondEmbedding
+from Utils import train_loader
 
 
 # ==========================================
@@ -88,7 +88,7 @@ def train():
 
         if avg_loss < best_loss:
             best_loss = avg_loss
-            torch.save(model.state_dict(), r"Trained Models/molecolyte_qm9_pretrained_best.pt")
+            torch.save(model.state_dict(), r"../Trained Models/molecolyte_qm9_pretrained_best.pt")
             print(f"🏆 New best model saved! (Lowest Loss: {best_loss:.4f})\n")
         else:
             print(f"Model did not improve. Best loss remains: {best_loss:.4f}\n")

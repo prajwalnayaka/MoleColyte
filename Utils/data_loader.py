@@ -2,8 +2,10 @@ import torch
 from torch.utils.data import random_split
 from torch_geometric.loader import DataLoader
 
-#dataset = torch.load("qm9_3d_fgn_dataset.pt", weights_only=False) # Uncomment to use QM9
-dataset = torch.load("tox21_3d_fgn_dataset.pt", weights_only=False)
+# Comment and uncomment depending on which dataset you need to use.
+
+#dataset = torch.load("../Preprocessed Datasets/qm9_3d_fgn_dataset.pt", weights_only=False)
+dataset = torch.load("../Preprocessed Datasets/tox21_3d_fgn_dataset.pt", weights_only=False)
 
 total_size = len(dataset)
 train_size = int(0.8 * total_size)

@@ -127,7 +127,7 @@ def build_fgn_augmented_graph(mol, x_tensor, pos_tensor, edge_index_tensor, edge
 #  MAIN PIPELINE
 # ===========================================================================
 print("Loading dataset...")
-ds = pd.read_csv("tox21.csv").fillna(0)
+ds = pd.read_csv("../tox21.csv").fillna(0)
 
 label_columns = [col for col in ds.columns if col not in ["smiles", "mol_id"]]
 
@@ -235,7 +235,7 @@ print(f"Successfully generated {len(successful_graphs)} 3D PyTorch Graphs.")
 print(f"Skipped {failed_count} physically impossible molecules.")
 print("-" * 35)
 
-torch.save(successful_graphs, "tox21_3d_fgn_dataset.pt")
+torch.save(successful_graphs, "../Preprocessed Datasets/tox21_3d_fgn_dataset.pt")
 end_time = time.time()
 total_time = end_time - start_time
 print(f"Total time: {total_time / 60:.2f} minutes.")

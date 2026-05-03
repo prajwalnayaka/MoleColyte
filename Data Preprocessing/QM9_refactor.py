@@ -99,7 +99,7 @@ def build_fgn_augmented_graph(mol, x_tensor, pos_tensor, edge_index_tensor, edge
 #  MAIN PIPELINE
 # ===========================================================================
 print("Loading RDKit molecules from raw SDF to guarantee perfect 3D alignment...")
-sdf_path = 'QM9_dataset/raw/gdb9.sdf'
+sdf_path = '../QM9_dataset/raw/gdb9.sdf'
 supplier = Chem.SDMolSupplier(sdf_path, removeHs=False)
 mol_dict = {}
 for mol in supplier:
@@ -165,7 +165,7 @@ print(f"Successfully generated {len(successful_graphs)} QM9-FGN PyTorch Graphs."
 print(f"Failed/Missing: {failed_count}")
 print("-" * 35)
 
-torch.save(successful_graphs, "qm9_3d_fgn_dataset.pt")
+torch.save(successful_graphs, "../Preprocessed Datasets/qm9_3d_fgn_dataset.pt")
 total_time = time.time() - start_time
 print(f"Total time: {total_time / 60:.2f} minutes.")
 print("Saved successfully as 'qm9_3d_fgn_dataset.pt'.")

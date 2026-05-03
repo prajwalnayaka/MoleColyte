@@ -1,5 +1,5 @@
 import torch
-data=torch.load("tox21_3d_fgn_dataset.pt",weights_only=False)
+data=torch.load("Preprocessed Datasets/tox21_3d_fgn_dataset.pt", weights_only=False)
 print(data[37])
 #print(data[7].edge_index)
 #print(data[4367].edge_attr)
