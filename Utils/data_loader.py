@@ -4,8 +4,8 @@ from torch_geometric.loader import DataLoader
 
 # Comment and uncomment depending on which dataset you need to use.
 
-#dataset = torch.load("../Preprocessed Datasets/qm9_3d_fgn_dataset.pt", weights_only=False)
-dataset = torch.load("../Preprocessed Datasets/tox21_3d_fgn_dataset.pt", weights_only=False)
+dataset = torch.load("../Preprocessed Datasets/qm9_3d_fgn_dataset.pt", weights_only=False)
+#dataset = torch.load("../Preprocessed Datasets/tox21_3d_fgn_dataset.pt", weights_only=False)
 
 total_size = len(dataset)
 train_size = int(0.8 * total_size)

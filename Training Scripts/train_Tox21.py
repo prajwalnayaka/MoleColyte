@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch_geometric.nn import GINEConv, global_mean_pool
-from Utils import train_loader, val_loader
+from Utils import train_loader, val_loader # UNCOMMENT THE CORRESPONDING DATASET IN /Utils/data_loader.py
 from Utils import BondEmbedding
 
 
@@ -11,20 +11,24 @@ from Utils import BondEmbedding
 # 1. THE MAIN MODEL ARCHITECTURE
 # ==========================================
 class MoleColyteModel(nn.Module):
-    def __init__(self, in_node_features=8, emb_dim=128, hidden_dim=64, out_features=1):
+    def __init__(self, in_node_features=8, emb_dim=128, hidden_dim=128, out_features=1, dropout_rate=0.3):
         super().__init__()
         self.bond_emb = BondEmbedding(emb_dim)
+        self.dropout = nn.Dropout(dropout_rate)
 
         self.mlp1 = nn.Sequential(nn.Linear(in_node_features, hidden_dim), nn.ReLU(), nn.Linear(hidden_dim, hidden_dim))
         self.mlp2 = nn.Sequential(nn.Linear(hidden_dim, hidden_dim), nn.ReLU(), nn.Linear(hidden_dim, hidden_dim))
+        self.mlp3 = nn.Sequential(nn.Linear(hidden_dim, hidden_dim), nn.ReLU(), nn.Linear(hidden_dim, hidden_dim))
 
         self.conv1 = GINEConv(self.mlp1, edge_dim=emb_dim + 1)
         self.conv2 = GINEConv(self.mlp2, edge_dim=emb_dim + 1)
+        self.conv3 = GINEConv(self.mlp3, edge_dim=emb_dim + 1)
 
         self.prediction_head = nn.Sequential(
-            nn.Linear(hidden_dim, 32),
+            nn.Linear(hidden_dim, hidden_dim // 2),
             nn.ReLU(),
-            nn.Linear(32, out_features)
+            nn.Dropout(dropout_rate),
+            nn.Linear(hidden_dim // 2, out_features)
         )
 
     def forward(self, x, pos, edge_index, edge_attr, batch):
@@ -33,9 +37,18 @@ class MoleColyteModel(nn.Module):
         distances = torch.pairwise_distance(pos[row], pos[col]).unsqueeze(-1)
         physics_edges = torch.cat([edge_embedding, distances], dim=-1)
 
+        # Pass 1
         x = self.conv1(x, edge_index, edge_attr=physics_edges)
         x = torch.relu(x)
+        x = self.dropout(x)  # Randomly turns off neurons so they don't overfit
+
+        # Pass 2
         x = self.conv2(x, edge_index, edge_attr=physics_edges)
+        x = torch.relu(x)
+        x = self.dropout(x)
+
+        # Pass 3
+        x = self.conv3(x, edge_index, edge_attr=physics_edges)
 
         mol_features = global_mean_pool(x, batch)
         return self.prediction_head(mol_features)
@@ -72,10 +85,10 @@ def train():
     print(f"Kiln: {device}")
 
     # Import the model as it is
-    model = MoleColyteModel(in_node_features=8, out_features=1)
+    model = MoleColyteModel(out_features=1) # It's already 1 by default but set here explicitly for clarity
 
     # Loading pre-trained physics weights from training on QM9
-    model.load_state_dict(torch.load(r"../Trained Models/molecolyte_qm9_pretrained_best.pt"))
+    model.load_state_dict(torch.load(r"../Trained Models/molecolyte_qm9_pretrained_bigger_best.pt"))
 
     # Modifying the model's prediction head according to the target features of Tox21
     model.prediction_head = nn.Sequential(
@@ -151,7 +164,7 @@ def train():
         # ------------------------------------------
         if avg_val_loss < best_loss:
             best_loss = avg_val_loss
-            torch.save(model.state_dict(), r"../Trained Models/molecolyte_tox21_random_spilt_finetuned_best.pt")
+            torch.save(model.state_dict(), r"../Trained Models/molecolyte_tox21_random_spilt_finetuned_bigger_best.pt")
             print(f"🏆 New best Tox21 model saved! (Lowest Val Loss: {best_loss:.4f})\n")
         else:
             print(f"Model did not improve. Best Val loss remains: {best_loss:.4f}\n")
