@@ -72,7 +72,7 @@ def train():
 
     # Load the pre-trained QM9 model (out_features=1, as trained)
     model = MoleColyteEGNN(out_features=1)
-    torch.load("/kaggle/working/molecolyte_egnn_qm9_pretrained_best.pt", weights_only=True)
+    torch.load("/kaggle/working/molecolyte_egnn_qm9_best.pt", weights_only=True)
 
     # Swap the prediction head for Tox21's 12 binary targets
     model.prediction_head = nn.Sequential(
