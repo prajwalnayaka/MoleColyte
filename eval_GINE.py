@@ -1,8 +1,8 @@
 import torch
 import numpy as np
 from sklearn.metrics import roc_auc_score
-from GINE_Training.data_loader import tox21_test_loader
-from GINE_Training.train_Tox21 import MoleColyteModel
+from GINE_Training import tox21_test_loader
+from GINE_Training import MoleColyteModel
 
 
 def evaluate():
