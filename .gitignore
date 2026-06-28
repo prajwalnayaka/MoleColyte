@@ -193,5 +193,5 @@ read_QM9.py
 !molecolyte_tox21_random_spilt_finetuned_best.pt
 !molecolyte_tox21_random_spilt_finetuned_bigger_best.pt
 !molecolyte_egnn_qm9_pretrained_best.pt
-!molecolyte_egnn_tox21_pretrained_best
+!molecolyte_egnn_tox21_pretrained_best.pt
 /Training Logs
