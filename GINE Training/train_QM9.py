@@ -90,7 +90,7 @@ def train():
         if avg_loss < best_loss:
             best_loss = avg_loss
             # Reverted the save name back to the standard 64-dim version
-            torch.save(model.state_dict(), r"../EGNN Weights/molecolyte_gine_qm9_best.pt")
+            torch.save(model.state_dict(), r"../GINE weights/molecolyte_gine_qm9_best.pt")
             print(f"🏆 New best model saved! (Lowest Loss: {best_loss:.4f})\n")
         else:
             print(f"Model did not improve. Best loss remains: {best_loss:.4f}\n")
