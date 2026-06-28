@@ -114,24 +114,6 @@ Performance is measured using AUC-ROC per assay on the held-out test set. Missin
   <img width="494" height="389" alt="EGNN_AUC" src="https://github.com/user-attachments/assets/42d29205-aeaa-443c-8106-d1cec38b30d9" />
 
 
-### Per-Assay EGNN Results
-
-| Assay | AUC-ROC |
-|---|---|
-| NR-AR | 0.6856 |
-| NR-AR-LBD | 0.8534 |
-| NR-AhR | 0.8021 |
-| NR-Aromatase | 0.6156 |
-| NR-ER | 0.7284 |
-| NR-ER-LBD | 0.7687 |
-| NR-PPAR-gamma | 0.7364 |
-| SR-ARE | 0.7866 |
-| SR-ATAD5 | 0.8329 |
-| SR-HSE | 0.7040 |
-| SR-MMP | 0.7804 |
-| SR-p53 | 0.8673 |
-| **Mean** | **0.7635** |
-
 ### A Note on Evaluation
 
 Both models were evaluated using random splitting. Scaffold-based splitting — the industry standard for molecular property prediction — would provide a more rigorous evaluation by testing on structurally dissimilar molecules. This is identified as future work.
