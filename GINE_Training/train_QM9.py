@@ -3,9 +3,8 @@ import time
 import torch.nn as nn
 import torch.optim as optim
 from torch_geometric.nn import GINEConv, global_mean_pool
-
-from Utils import BondEmbedding
-from Utils import qm9_train_loader # UNCOMMENT THE CORRESPONDING DATASET IN /Utils/data_loader.py
+from .data_loader import qm9_train_loader
+from .layer_embedding import BondEmbedding
 
 
 # ==========================================
@@ -90,7 +89,7 @@ def train():
         if avg_loss < best_loss:
             best_loss = avg_loss
             # Reverted the save name back to the standard 64-dim version
-            torch.save(model.state_dict(), r"../Trained_Models/molecolyte_qm9_pretrained_best.pt")
+            torch.save(model.state_dict(), r"../GINE weights/molecolyte_gine_qm9_best.pt")
             print(f"🏆 New best model saved! (Lowest Loss: {best_loss:.4f})\n")
         else:
             print(f"Model did not improve. Best loss remains: {best_loss:.4f}\n")

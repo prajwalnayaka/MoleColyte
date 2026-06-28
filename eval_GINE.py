@@ -1,9 +1,9 @@
 import torch
-import time
 import numpy as np
 from sklearn.metrics import roc_auc_score
-from Utils import tox21_test_loader
-from Training_Scripts.train_Tox21 import MoleColyteModel
+from GINE_Training import tox21_test_loader
+from GINE_Training import MoleColyteModel
+
 
 def evaluate():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -12,7 +12,7 @@ def evaluate():
     model = MoleColyteModel(in_node_features=8, out_features=12).to(device)
 
     model.load_state_dict(
-        torch.load(r"Trained_Models/molecolyte_tox21_random_spilt_finetuned_best.pt",weights_only=True)) # Add map_location=torch.device('cpu') inside torch.load() if you only have a CPU
+        torch.load(r"GINE weights/molecolyte_gine_tox21_best.pt", weights_only=True))
     model.eval()
 
     all_preds = []
@@ -60,6 +60,4 @@ def evaluate():
 
 
 if __name__ == "__main__":
-    since = time.time()
     evaluate()
-    print(f"Time: {(time.time()-since)/60:.2f} minutes.")
