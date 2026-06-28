@@ -34,15 +34,17 @@ The core model is built on E(n) Equivariant Graph Neural Networks (Satorras et a
 
 Each EGNN layer performs three operations in sequence:
 
-- **Edge MLP** — computes messages from node hidden states, live pairwise distances, and bond type features
-- **Node MLP** — aggregates neighbour messages to update each atom's hidden state
-- **Coordinate MLP** — produces scalar weights that nudge atomic positions along relative position vectors
+- **Edge MLP** — computes a message between 2 atoms, which is amalgamation of  hidden states of the atoms, the distance between the atoms, and bond type features
+- **Node MLP** — assimilates the incoming messages from all the immediate neighbors of the atom and uses it to update the hidden state of the atom
+- **Coordinate MLP** — produces the new position of an atom based on messages coming in from all the immediate neighboring atoms and the relative distances from them.
 
-Three EGNN layers are stacked, giving each atom a 3-hop receptive field. SiLU activations are used throughout for smooth gradient flow. The final molecule representation is obtained via global mean pooling over all node hidden states.
+Three EGNN layers are stacked, giving each atom a 3-hop receptive field. SiLU activations are used to introduce non-linearity without dying neurons. The final molecule representation is obtained via global mean pooling over all node hidden states.
 
 ### GINE - Graph Isomorphism Network
 
-This model served as the initial approach, hence setting the baseline performance to beat by the EGNN model. 
+This model served as the initial approach, hence setting the baseline performance to be beaten by the EGNN model. This model doesn’t inherently acknowledge or support the use of the pos tensor which contain the X, Y and Z coordinates of the atoms of the molecule, so the
+workaround was to calculate the Cartesian distance between the atoms using their X, Y and Z coordinates from the pos tensor and append it to the edge_attr tensor. This way the model has implicit knowledge of the 3D position of the atoms.
+
 
 ### Functional Group Nodes (FGNs)
 
@@ -248,12 +250,9 @@ pip install pandas rdkit torch-geometric scikit-learn numpy==1.26.4
 
 **Known issue:** DGL's graphbolt submodule requires `torchdata.datapipes` which was removed in torchdata ≥ 0.8.0. Pin to 0.7.1 as shown above, or set `os.environ["DGL_SKIP_GRAPHBOLT"] = "1"` before importing DGL.
 
-**Known issue:** PyG's QM9 dataset class contains a bug where `mol.GetNumAtoms()` is called on a potentially None molecule object. A one-line patch is required before running `QM9_refactor.py`:
+**Known issue:** PyG's QM9 dataset class contains a bug where `mol.GetNumAtoms()` is called on a potentially None molecule object. A one-line patch is required before running `QM9_refactor.py`, so use this specific fork of the PyG library:
 
-```bash
-sed -i 's/            N = mol.GetNumAtoms()/            if mol is None: continue\n            N = mol.GetNumAtoms()/' \
-  $(python -c "import torch_geometric; import os; print(os.path.dirname(torch_geometric.__file__))")/datasets/qm9.py
-```
+https://github.com/prajwalnayaka/pytorch_geometric
 
 ---
 
@@ -263,36 +262,36 @@ Run the pipeline in order:
 
 ```bash
 # Step 1 — Preprocess Tox21
-python preprocessing/SMILES_to_3D.py
+python Data Preprocessing/SMILES_to_3D.py
 
 # Step 2 — Preprocess QM9
-python preprocessing/QM9_refactor.py
+python Data_Preprocessing/QM9_refactor.py
 
-# Step 3 — Verify data loading
-python training/data_loader.py
+# Step 3 — Create the data loader objects
+python EGNN_Training/data_loader.py
 
 # Step 4 — Pretrain on QM9
-python training/train_QM9.py
+python EGNN_Training/train_QM9.py
 
 # Step 5 — Fine-tune on Tox21
-python training/train_Tox21.py
+python trainiEGNN_Trainingng/train_Tox21.py
 
 # Step 6 — Evaluate
-python training/eval_molecolyte.py
+python eval_EGNN.ipynb
 ```
 
 ---
 
 ## Dependencies
 
-| Package | Purpose |
-|---|---|
-| PyTorch | Deep learning framework |
-| DGL | Graph neural network library |
-| RDKit | SMILES parsing, 3D embedding (ETKDGv3), MMFF optimisation |
-| PyTorch Geometric | QM9 dataset download and preprocessing |
-| scikit-learn | AUC-ROC evaluation |
-| NumPy / Pandas | Data handling |
+| Package                  | Purpose |
+|--------------------------|---|
+| PyTorch                  | Deep learning framework |
+| DGL                      | Graph neural network library |
+| RDKit                    | SMILES parsing, 3D embedding (ETKDGv3), MMFF optimisation |
+| PyTorch Geometric        | QM9 dataset download and preprocessing |
+| scikit-learn             | AUC-ROC evaluation |
+| NumPy / Pandas           | Data handling |
 
 ---
 
@@ -309,20 +308,21 @@ python training/eval_molecolyte.py
 ## Contributors
 
 - **Prajwal Nayaka T** ([GitHub](https://github.com/prajwalnayakat))
-  - Designed and built the complete GINE pipeline on PyTorch Geometric (data preprocessing, model architecture, training loop, evaluation)
+  - Designed and built the GINE pipeline on PyTorch Geometric (data preprocessing, model architecture, training loop, evaluation)
   - Engineered the Functional Group Node (FGN) augmentation system
   - Designed the dynamic per-assay penalty weight system for class imbalance
-  - Built the 3D molecular graph construction pipeline (ETKDGv3 + MMFF + FGN) for both Tox21 and QM9
-  - Resolved PyG QM9 dataset bug (opened PR on PyG repository) and DGL graphbolt compatibility issues
+  - Built the 3D molecular graph construction pipeline (ETKDGv3 + MMFF) for both Tox21 and QM9
+  - Resolved PyG QM9 dataset bug (opened PR on PyG repository)
   - Trained and evaluated both GINE and EGNN models
 
-- **YKW** ([GitHub](https://github.com/pragyamv))
+- **Pragya MV** ([GitHub](https://github.com/pragyamv))
   - Designed and implemented the EGNN layer (edge MLP, node MLP, coordinate MLP)
+  - Engineered the FGN creation feature for the 3D molecules
   - Designed the training scripts for QM9 pretraining and Tox21 fine-tuning
   - Designed the data loader and DGL graph collation pipeline
   - Literature review and reference paper curation
 
-- **SUH**
+- **Suhana Bakshi** ([GitHub](https://github.com/suhanabakshi))
   - Dataset acquisition and initial exploratory analysis
 
 ---
