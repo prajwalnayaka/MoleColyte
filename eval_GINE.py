@@ -1,8 +1,8 @@
 import torch
 import numpy as np
 from sklearn.metrics import roc_auc_score
-from Utils import tox21_test_loader
-from Training_Scripts.train_Tox21 import MoleColyteModel
+from GINE_Training.data_loader import tox21_test_loader
+from GINE_Training.train_Tox21 import MoleColyteModel
 
 
 def evaluate():
@@ -12,7 +12,7 @@ def evaluate():
     model = MoleColyteModel(in_node_features=8, out_features=12).to(device)
 
     model.load_state_dict(
-        torch.load(r"Trained_Models/molecolyte_tox21_random_spilt_finetuned_best.pt", weights_only=True))
+        torch.load(r"GINE weights/molecolyte_gine_tox21_best.pt", weights_only=True))
     model.eval()
 
     all_preds = []
