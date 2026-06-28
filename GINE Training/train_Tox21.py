@@ -78,7 +78,7 @@ def train():
     model = MoleColyteModel(out_features=1)
 
     # Loading pre-trained physics weights from training on QM9 (Standard baseline)
-    model.load_state_dict(torch.load(r"../Trained_Models/molecolyte_qm9_pretrained_best.pt"))
+    model.load_state_dict(torch.load(r"../EGNN Weights/molecolyte_gine_qm9_best.pt"))
 
     # Modifying the model's prediction head according to the target features of Tox21
     model.prediction_head = nn.Sequential(
@@ -155,7 +155,7 @@ def train():
         if avg_val_loss < best_loss:
             best_loss = avg_val_loss
             # Restored standard path naming
-            torch.save(model.state_dict(), r"../Trained_Models/molecolyte_tox21_random_split_finetuned_best.pt")
+            torch.save(model.state_dict(), r"../EGNN Weights/molecolyte_gine_qm9_best.pt")
             print(f"🏆 New best Tox21 model saved! (Lowest Val Loss: {best_loss:.4f})\n")
         else:
             print(f"Model did not improve. Best Val loss remains: {best_loss:.4f}\n")
