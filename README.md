@@ -109,7 +109,7 @@ Performance is measured using AUC-ROC per assay on the held-out test set. Missin
 | GINE (3D augmented) | PyTorch Geometric | 0.67         |
 | **EGNN (equivariant)** | **DGL** | **0.76**     |
 ### GINE ROC-AUC:
-<img width="837" height="594" alt="GINE-AUC" src="https://github.com/user-attachments/assets/ecd11419-4352-45a6-930d-803a2b7ba6ff" />
+<img width="837" height="594" alt="GINE-AUC" src="https://github.com/user-attachments/assets/ecd11419-4352-45a6-930d-803a2b7ba6ff" />                    
 ### EGNN ROC-AUC:
 <img width="494" height="389" alt="EGNN_AUC" src="https://github.com/user-attachments/assets/42d29205-aeaa-443c-8106-d1cec38b30d9" />
 
