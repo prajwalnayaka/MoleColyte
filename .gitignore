@@ -188,8 +188,8 @@ QM9_dataset/
 *.pt
 read_3D_tox21.py
 read_QM9.py
-!molecolyte_gine_qm9_pretrained_best.pt
-!molecolyte__gine_qm9_pretrained_bigger_best.pt
-!molecolyte_egnn_qm9_pretrained_best.pt
-!molecolyte_egnn_tox21_pretrained_best.pt
+!molecolyte_gine_qm9_best.pt
+!molecolyte_gine_tox21_best.pt
+!molecolyte_egnn_qm9_best.pt
+!molecolyte_egnn_tox21_best.pt
 /Training Logs
