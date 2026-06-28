@@ -157,7 +157,7 @@ def train():
         # ------------------------------------------
         if avg_val_loss < best_loss:
             best_loss = avg_val_loss
-            torch.save(model.state_dict(), "/kaggle/working/molecolyte_egnn_tox21_pretrained_best.pt")
+            torch.save(model.state_dict(), "/kaggle/working/molecolyte_egnn_tox21_best.pt")
             print(f"🏆 New best Tox21 model saved! (Lowest Val Loss: {best_loss:.4f})\n")
         else:
             print(f"Model did not improve. Best Val loss remains: {best_loss:.4f}\n")
