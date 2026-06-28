@@ -72,7 +72,7 @@ def train():
 
     # Load the pre-trained QM9 model (out_features=1, as trained)
     model = MoleColyteEGNN(out_features=1)
-    torch.load("/kaggle/working/molecolyte_egnn_qm9_best.pt", weights_only=True)
+    torch.load("../EGNN Weights/molecolyte_egnn_qm9_best.pt", weights_only=True)
 
     # Swap the prediction head for Tox21's 12 binary targets
     model.prediction_head = nn.Sequential(
@@ -157,7 +157,7 @@ def train():
         # ------------------------------------------
         if avg_val_loss < best_loss:
             best_loss = avg_val_loss
-            torch.save(model.state_dict(), "/kaggle/working/molecolyte_egnn_tox21_best.pt")
+            torch.save(model.state_dict(), "../EGNN Weights/molecolyte_egnn_tox21_best.pt")
             print(f"🏆 New best Tox21 model saved! (Lowest Val Loss: {best_loss:.4f})\n")
         else:
             print(f"Model did not improve. Best Val loss remains: {best_loss:.4f}\n")
