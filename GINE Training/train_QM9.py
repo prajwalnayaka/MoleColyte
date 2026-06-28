@@ -3,9 +3,8 @@ import time
 import torch.nn as nn
 import torch.optim as optim
 from torch_geometric.nn import GINEConv, global_mean_pool
-
-from Utils import BondEmbedding
-from Utils import qm9_train_loader # UNCOMMENT THE CORRESPONDING DATASET IN /Utils/data_loader.py
+from data_loader import qm9_train_loader
+from layer_embedding import BondEmbedding
 
 
 # ==========================================
