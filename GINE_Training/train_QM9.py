@@ -3,8 +3,8 @@ import time
 import torch.nn as nn
 import torch.optim as optim
 from torch_geometric.nn import GINEConv, global_mean_pool
-from data_loader import qm9_train_loader
-from layer_embedding import BondEmbedding
+from .data_loader import qm9_train_loader
+from .layer_embedding import BondEmbedding
 
 
 # ==========================================

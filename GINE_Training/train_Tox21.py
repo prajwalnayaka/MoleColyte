@@ -3,8 +3,8 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch_geometric.nn import GINEConv, global_mean_pool
-from data_loader import tox21_train_loader, tox21_val_loader
-from layer_embedding import BondEmbedding
+from .data_loader import tox21_train_loader, tox21_val_loader
+from .layer_embedding import BondEmbedding
 
 
 # ==========================================
