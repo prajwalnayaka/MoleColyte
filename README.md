@@ -261,7 +261,7 @@ python EGNN_Training/data_loader.py
 python EGNN_Training/train_QM9.py
 
 # Step 5 — Fine-tune on Tox21
-python trainiEGNN_Trainingng/train_Tox21.py
+python EGNN_Training/train_Tox21.py
 
 # Step 6 — Evaluate
 python eval_EGNN.ipynb
